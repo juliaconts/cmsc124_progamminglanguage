@@ -1,4 +1,4 @@
-package example.lexicalscanner.scanner.utils
+package main.kotlin.fleet.lexer
 
 data class Token(
     val type: TokenType,

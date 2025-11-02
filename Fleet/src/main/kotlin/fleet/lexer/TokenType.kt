@@ -1,4 +1,4 @@
-package example.lexicalscanner.scanner.utils
+package main.kotlin.fleet.lexer
 
 enum class TokenType {
     // grouping tokens
@@ -17,7 +17,7 @@ enum class TokenType {
     IDENTIFIER, STRING, NUMBER, BOOL, NULL,
 
     // keywords
-    VAR, DEF, RETURN, INT, FLOAT, CHAR, IF, ELSE, WHILE, FOR,
+    DEF, RETURN, INT, FLOAT, CHAR, IF, ELSE, WHILE, FOR,
 
     EOF
 }
