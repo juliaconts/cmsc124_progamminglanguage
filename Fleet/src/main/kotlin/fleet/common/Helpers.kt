@@ -22,8 +22,8 @@ fun Scanner.match(expected: Char): Boolean { // *used in possible multiple chara
 
 // Parser helper functions
 fun Parser.match(vararg types: TokenType): Boolean {
-    for (t in types) {
-        if (check(t)) {
+    for (type in types) {
+        if (check(type)) {
             advance()
             return true
         }
@@ -71,7 +71,7 @@ fun Parser.synchronize() {
     while (!isAtEnd()) {
         if (previous().type == SEMICOLON) return
         when (peek().type) {
-            DEF, IF, WHILE, RETURN -> return
+            DEF, IF, LOOP, RETURN -> return
             else -> {}
         }
         advance()
