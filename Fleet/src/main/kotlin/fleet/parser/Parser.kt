@@ -157,7 +157,7 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun unary(): Expr {
-        if (match(NEGATIVE, MINUS, NOT_EQUAL)) {
+        if (match(NEGATIVE, MINUS, NOT)) {
             val operator = previous()
             val right = unary()
             return Expr.Unary(TokenNode(operator), right)

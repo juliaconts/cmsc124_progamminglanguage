@@ -1,5 +1,6 @@
 package main.kotlin.fleet.common
 
+import main.kotlin.fleet.eval.RuntimeError
 import main.kotlin.fleet.lexer.*
 import main.kotlin.fleet.lexer.TokenType.*
 import main.kotlin.fleet.parser.*
@@ -78,3 +79,35 @@ fun Parser.synchronize() {
     }
 }
 
+//Evaluator helper functions
+object Helpers {
+    fun isTruthy(value: Any?): Boolean = when (value) {
+        null -> false
+        is Boolean -> value
+        else -> true
+    }
+
+    fun isEqual(a: Any?, b: Any?): Boolean {
+        if (a == null && b == null) return true
+        if (a == null) return false
+        return a == b
+    }
+
+    fun checkNumberOperands(operator: Token, left: Any?, right: Any?): Pair<Double, Double> {
+        if (left is Double && right is Double) return Pair(left, right)
+        throw RuntimeError(operator, "Operands must be numbers.")
+    }
+
+    fun checkNumberOperand(operator: Token, operand: Any?): Double {
+        if (operand is Double) return operand
+        throw RuntimeError(operator, "Operand must be a number.")
+    }
+
+    fun valueWithName(name: String, value: Any?): String {
+        return when (value) {
+            null -> "$name = nil"
+            is Double -> if (value % 1.0 == 0.0) "$name = ${value.toInt()}" else "$name = $value"
+            else -> "$name = $value"
+        }
+    }
+}
