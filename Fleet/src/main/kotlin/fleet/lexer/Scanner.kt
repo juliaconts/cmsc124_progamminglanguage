@@ -1,6 +1,5 @@
 package main.kotlin.fleet.lexer
 
-import main.kotlin.fleet.common.*
 import main.kotlin.fleet.lexer.KeywordFactory.keywords
 
 class Scanner(val source: String) {
@@ -126,5 +125,21 @@ class Scanner(val source: String) {
         }
         val value = source.substring(start, current).toDouble()
         addToken(TokenType.NUMBER, value)
+    }
+
+    fun peek(): Char = if (endOfLine()) '\u0000' else source[current] // *peeks at current character
+    fun peekNext(): Char = if (current + 1 >= source.length) '\u0000' else source[current + 1] // *peeks at next character
+    fun endOfLine(): Boolean = current >= source.length
+    fun next(): Char = source[current++] // *reads through text
+    fun addToken(type: TokenType, literal: Any? = null) { // *adds token to mutable list of tokens
+        val text = source.substring(start, current)
+        readTokens.add(Token(type, text, literal, line))
+    }
+
+    fun match(expected: Char): Boolean { // *used in possible multiple character tokens, checks if character after token changes token type
+        if (endOfLine()) return false
+        if (source[current] != expected) return false
+        current++
+        return true
     }
 }

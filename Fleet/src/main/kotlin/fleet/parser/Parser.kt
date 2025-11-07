@@ -1,6 +1,5 @@
 package main.kotlin.fleet.parser
 
-import main.kotlin.fleet.common.*
 import main.kotlin.fleet.lexer.*
 import main.kotlin.fleet.lexer.TokenType.*
 
@@ -179,5 +178,62 @@ class Parser(val tokens: List<Token>) {
         }
 
         throw error(peek(), "Expect expression after 'Action ::'.")
+    }
+
+    fun match(vararg types: TokenType): Boolean {
+        for (type in types) {
+            if (check(type)) {
+                advance()
+                return true
+            }
+        }
+        return false
+    }
+
+    fun consume(type: TokenType, message: String): Token {
+        if (check(type)) return advance()
+        throw error(peek(), message)
+    }
+
+    fun check(type: TokenType): Boolean {
+        if (isAtEnd()) return false
+        return peek().type == type
+    }
+
+    fun checkNext(type: TokenType): Boolean {
+        if (current + 1 >= tokens.size) return false
+        return tokens[current + 1].type == type
+    }
+
+    fun advance(): Token {
+        if (!isAtEnd()) current++
+        return previous()
+    }
+
+    fun isAtEnd(): Boolean = peek().type == EOF
+
+    fun peek(): Token = tokens[current]
+
+    fun previous(): Token = tokens[current - 1]
+
+    fun error(token: Token, message: String): ParseError {
+        if (token.type == EOF) {
+            println("[line ${token.line}] Error at end: $message")
+        } else {
+            println("[line ${token.line}] Error at '${token.lexeme}': $message")
+        }
+        return ParseError(message)
+    }
+
+    fun synchronize() {
+        advance()
+        while (!isAtEnd()) {
+            if (previous().type == SEMICOLON) return
+            when (peek().type) {
+                DEF, IF, LOOP, RETURN -> return
+                else -> {}
+            }
+            advance()
+        }
     }
 }
