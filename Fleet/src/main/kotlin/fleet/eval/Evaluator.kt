@@ -3,55 +3,91 @@ package main.kotlin.fleet.eval
 import main.kotlin.fleet.lexer.Token
 import main.kotlin.fleet.parser.*
 
-class Evaluator(private val env: Environment) {
+class Evaluator(global: Environment) {
 
-    fun evaluate(stmt: Stmt?) {
+    private var env: Environment = global
+    fun evaluate(stmt: Stmt?) : EvalResult {
         try {
             when (stmt) {
-                is Stmt.Program -> evaluate(stmt.root)
+                is Stmt.Program -> {
+                    return if (stmt.root != null) evaluate(stmt.root) else EvalResult.Continue
+                }
+
+                is Stmt.StoryboardDecl -> {
+                    return if (stmt.body != null) evaluate(stmt.body) else EvalResult.Continue
+                }
+
                 is Stmt.Block -> {
-                    stmt.first?.let { evaluate(it) }
-                    stmt.next?.let { evaluate(it) }
-                }
-                is Stmt.ActionStmt -> {
-                    val result = evaluateExpr(stmt.action)
-                    printResult(result ?: "")
-                }
-                is Stmt.PresentStmt -> {
-                    val result = evaluateExpr(stmt.value)
-                    printResult( result ?: "")
-                }
-                is Stmt.AssignStmt -> {
-                    val value = evaluateExpr(stmt.value)
-                    env.define(stmt.target.token.lexeme, value)
-                    printResult(Helpers.valueWithName(stmt.target.token.lexeme, value))
-                }
-                is Stmt.IfStmt -> {
-                    val cond = evaluateExpr(stmt.condition)
-                    if (Helpers.isTruthy(cond)) {
-                        evaluate(stmt.thenBranch)
-                    } else {
-                        stmt.elseBranch?.let { evaluate(it) }
+                    val previous = env
+                    env = Environment(previous)    // new inner scope
+                    try {
+                        val firstResult = stmt.first?.let { evaluate(it) } ?: EvalResult.Continue
+                        if (firstResult is EvalResult.ReturnValue) return firstResult
+
+                        val nextResult = stmt.next?.let { evaluate(it) } ?: EvalResult.Continue
+                        return nextResult
+                    } finally {
+                        env = previous             // restore outer scope
                     }
                 }
+
+                is Stmt.ActionStmt -> {
+                    val result = evaluateExpr(stmt.action)
+//                    printResult(result ?: "")
+                    // THIS is where we stop the program and bubble up the value
+                    return EvalResult.Continue
+                }
+
+                is Stmt.PresentStmt -> {
+                    val result = evaluateExpr(stmt.value)
+                    printResult(result ?: "")
+                    // THIS is where we stop the program and bubble up the value
+                    return EvalResult.Continue
+                }
+
+                is Stmt.AssignStmt -> {
+                    val value = evaluateExpr(stmt.value)
+                    env.assign(stmt.target.token.lexeme, value)  // use assign, not define
+//                    printResult(Helpers.valueWithName(stmt.target.token.lexeme, value))
+                    return EvalResult.Continue
+                }
+
+                is Stmt.IfStmt -> {
+                    val cond = evaluateExpr(stmt.condition)
+                    val branch = if (Helpers.isTruthy(cond)) stmt.thenBranch else stmt.elseBranch
+                    return if (branch != null) evaluate(branch) else EvalResult.Continue
+                }
+
                 is Stmt.SceneStmt -> {
                     val times = stmt.count.token.literal as? Double ?: 0.0
                     repeat(times.toInt()) {
-                        stmt.body?.let { evaluate(it) }
+                        val res = stmt.body?.let { evaluate(it) }
+                        if (res is EvalResult.ReturnValue) {
+                            return res
+                        }
                     }
+                    return EvalResult.Continue
                 }
                 is Stmt.ActorDecl -> {
                     // ActorDecl doesn't "run" but you could store it in env if desired
-                    env.define(stmt.name.token.lexeme, stmt.role.token.lexeme)
+                    val actorName = stmt.name.token.lexeme
+                    val actorRole = stmt.role.token.lexeme
+                    val typeName = stmt.datatype.lowercase()
+                    env.define(actorName, 0)
+                    return EvalResult.Continue
+
                 }
-                null -> return
+                null -> return EvalResult.Continue
+
                 else -> throw RuntimeError(null, "Unknown statement type")
             }
         } catch (e: RuntimeError) {
             val line = (stmt as? Stmt.AssignStmt)?.target?.token?.line ?: 1
             println("[line $line] Runtime error: ${e.message}")
+            return EvalResult.Continue
         } catch (e: Exception) {
             println("Unexpected error: ${e.message}")
+            return EvalResult.Continue
         }
     }
 
@@ -75,7 +111,9 @@ class Evaluator(private val env: Environment) {
                     when (expr.operator.token.lexeme) {
                         "add" -> when {
                             left is Double && right is Double -> left + right
-                            left is String && right is String -> left + right
+
+                            left is String || right is String ||
+                            left is Char || right is Char -> Helpers.valueToString(left) + Helpers.valueToString(right)
                             else -> throw RuntimeError(expr.operator.token, "Operands must be two numbers or two strings.")
                         }
                         "sub" -> {
@@ -164,6 +202,17 @@ class Evaluator(private val env: Environment) {
                 null -> "$name = nil"
                 is Double -> if (value % 1.0 == 0.0) "$name = ${value.toInt()}" else "$name = $value"
                 else -> "$name = $value"
+            }
+        }
+
+        fun valueToString(value: Any?): String {
+            return when (value) {
+                null -> "nil"
+                is Double ->
+                    if (value % 1.0 == 0.0) value.toInt().toString()
+                    else value.toString()
+                is Char -> value.toString()
+                else -> value.toString()
             }
         }
     }

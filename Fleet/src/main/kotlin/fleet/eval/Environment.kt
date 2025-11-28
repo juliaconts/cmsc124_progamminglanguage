@@ -1,6 +1,10 @@
 package main.kotlin.fleet.eval
 
-class Environment {
+import main.kotlin.fleet.eval.RuntimeError
+
+data class ActorValue(val value: Any?, val datatype: String)
+
+class Environment (private val enclosing: Environment? = null) {
     private val values = mutableMapOf<String, Any?>()
 
     fun define(name: String, value: Any?) {
@@ -8,7 +12,21 @@ class Environment {
     }
 
     fun get(name: String): Any? {
-        if (values.containsKey(name)) return values[name]
+        if (name in values) return values[name]
+        if (enclosing != null) return enclosing.get(name)
         throw RuntimeError(null, "Undefined variable '$name'.")
     }
+
+    fun assign(name: String, value: Any?) {
+        if (name in values){
+            values[name] = value
+            return
+        }
+        if (enclosing != null){
+            enclosing.assign(name,value)
+            return
+        }
+        throw RuntimeError(null, "Variable '$name' is not declared.")
+    }
+
 }

@@ -13,8 +13,9 @@ interface Expr {
 
 interface Stmt {
     data class Program(val root: Stmt?) : Stmt
+    data class StoryboardDecl(val name: TokenNode, val body: Stmt?) : Stmt
     data class Block(val first: Stmt?, val next: Stmt?) : Stmt
-    data class ActorDecl(val name: TokenNode, val role: TokenNode) : Stmt
+    data class ActorDecl(val name: TokenNode, val role: TokenNode, val datatype: String) : Stmt
     data class AssignStmt(val target: TokenNode, val value: Expr) : Stmt
     data class ActionStmt(val action: Expr) : Stmt
     data class PresentStmt(val value: Expr) : Stmt

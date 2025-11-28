@@ -6,7 +6,7 @@ import main.kotlin.fleet.lexer.TokenType.*
 class ParseError(message: String) : RuntimeException(message)
 
 class Parser(val tokens: List<Token>) {
-    var current = 0
+    private var current = 0
 
     fun parse(): Stmt.Program {
         val root = try {
@@ -20,35 +20,55 @@ class Parser(val tokens: List<Token>) {
 
     private fun parseStoryboard(): Stmt? {
         consume(STORYBOARD, "Expect 'storyboard' at start.")
-        val body = parseBlock()
-        consume(END, "Expect 'cut' at end of storyboard.")
-        return body
-    }
-
-    private fun parseBlock(): Stmt.Block? {
-        consume(LEFT_BRACE, "Expect '{' after storyboard.")
-        var first: Stmt? = null
-        var currentStmt: Stmt.Block? = null
-
-        while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            val stmt = try {
-                parseStatement()
-            } catch (e: ParseError) {
-                synchronize()
-                null
-            }
-            if (stmt != null) {
-                if (first == null) {
-                    first = stmt
-                    currentStmt = Stmt.Block(first, null)
-                } else {
-                    currentStmt = Stmt.Block(currentStmt, stmt)
-                }
-            }
+        val nameToken = consume(IDENTIFIER, "Expected storyboard name (identifier).")
+        if (!nameToken.lexeme.first().isUpperCase()) {
+            throw error(nameToken, "Storyboard identifier must begin with an uppercase letter.")
         }
 
-        consume(RIGHT_BRACE, "Expect '}' after storyboard block.")
-        return currentStmt
+        consume(TokenType.LEFT_BRACE, "Expect '{' after storyboard name.")
+//        val body = parseBlock()
+
+        val body = parseBlockAfterLeftBrace("Expect '}' after storyboard block.")
+        consume(END, "Expect 'cut' at end of storyboard.")
+        return Stmt.StoryboardDecl(TokenNode(nameToken), body)
+    }
+
+
+    private fun parseBlockAfterLeftBrace (closeMessage: String): Stmt.Block {
+        // CASE 1: empty block → "{}"
+        if (check(RIGHT_BRACE)) {
+            consume(RIGHT_BRACE, closeMessage)
+            return Stmt.Block(null, null)
+        }
+
+        // CASE 2: parse the first statement inside the block
+        val firstStmt: Stmt? = try {
+            parseStatement()
+        } catch (e: ParseError) {
+            synchronize()
+            null
+        }
+
+        // If the very next token is '}', this block has only one statement:
+        //
+        // {
+        //   firstStmt
+        // }
+        if (check(RIGHT_BRACE) || isAtEnd()) {
+            consume(RIGHT_BRACE, closeMessage)
+            return Stmt.Block(firstStmt, null)
+        }
+
+        // CASE 3: there is at least one more statement before '}'
+        // Recursively parse "the rest of the block"
+        //
+        // {
+        //   firstStmt
+        //   ...restOfBlock...
+        // }
+        val restOfBlock = parseBlockAfterLeftBrace(closeMessage)
+
+        return Stmt.Block(firstStmt, restOfBlock)
     }
 
     private fun parseStatement(): Stmt {
@@ -59,29 +79,29 @@ class Parser(val tokens: List<Token>) {
             match(PRINT) -> { consume(EQUALS, "Expect '::' after 'Present'."); presentStatement() }
             match(LOOP) -> { consume(EQUALS, "Expect '::' after 'Scene'."); sceneStatement() }
             match(IF) -> ifStatement()
+            match(TokenType.LEFT_BRACE) -> { parseBlockAfterLeftBrace("Expect '}' after block.")}
             else -> throw error(peek(), "Unexpected statement.")
         }
     }
 
     private fun actorStatement(): Stmt {
-        val name = consume(IDENTIFIER, "Expect actor name.")
-        if (!match(TokenType.DATATYPE)) error(previous(), "Actor must be followed by a role.")
-        val role = consume(IDENTIFIER, "Expect role name after 'Role ::'.")
-        return Stmt.ActorDecl(TokenNode(name), TokenNode(role))
+        val nameToken = consume(IDENTIFIER, "Expect actor name after 'Actor ::'.")
+        consume(ROLE, "Expect 'Role' after actor name.")
+        consume(EQUALS, "Expect '::' after 'Role'.")
+        val datatypeToken = advance().takeIf { it.type in listOf(INT, FLOAT, CHAR, BOOL, STRING) }
+            ?: throw error(peek(), "Expect datatype after 'Role ::'.")
+        return Stmt.ActorDecl(
+            name = TokenNode(nameToken),
+            role = TokenNode(nameToken), // optionally use same as variable name
+            datatype = datatypeToken.lexeme
+        )
     }
 
     private fun assignStatement(): Stmt {
-        if (match(ACTION)) {
-            val expr = parseExpression()
-            consume(TO, "Expect 'to' after expression.")
-            val target = consume(IDENTIFIER, "Expect target variable after 'to'.")
-            return Stmt.AssignStmt(TokenNode(target), expr)
-        } else {
-            val expr = parseExpression()
-            consume(TO, "Expect 'to' after expression.")
-            val target = consume(IDENTIFIER, "Expect target variable after 'to'.")
-            return Stmt.AssignStmt(TokenNode(target), expr)
-        }
+        val expr = parseExpression()
+        consume(TO, "Expect 'to' after expression.")
+        val target = consume(IDENTIFIER, "Expect target variable after 'to'.")
+        return Stmt.AssignStmt(TokenNode(target), expr)
     }
 
     private fun presentStatement(): Stmt {
@@ -91,7 +111,7 @@ class Parser(val tokens: List<Token>) {
 
     private fun sceneStatement(): Stmt {
         val count = consume(NUMBER, "Expect scene count.")
-        consume(TokenType.TIMES, "Expect 'takes' after number.")
+        consume(TIMES, "Expect 'takes' after number.")
         val body = parseStatement()
         return Stmt.SceneStmt(TokenNode(count), body)
     }
@@ -102,17 +122,12 @@ class Parser(val tokens: List<Token>) {
         consume(RIGHT_PAR, "Expect ')' after if condition.")
 
         val thenBranch = parseStatement()
-        var elseBranch: Stmt? = null
-
-        if (match(ELSE)) {
-            elseBranch = if (match(IF)) ifStatement() else parseStatement()
-        }
+        val elseBranch = if (match(ELSE)) if (match(IF)) ifStatement() else parseStatement() else null
 
         return Stmt.IfStmt(condition, thenBranch, elseBranch)
     }
 
-    // ===== EXPRESSIONS =====
-
+    // ===== Expressions =====
     private fun parseExpression(): Expr = equality()
 
     private fun equality(): Expr {
@@ -177,10 +192,11 @@ class Parser(val tokens: List<Token>) {
             return Expr.Grouping(expr)
         }
 
-        throw error(peek(), "Expect expression after 'Action ::'.")
+        throw error(peek(), "Expect expression.")
     }
 
-    fun match(vararg types: TokenType): Boolean {
+    // ===== Token Helpers =====
+    private fun match(vararg types: TokenType): Boolean {
         for (type in types) {
             if (check(type)) {
                 advance()
@@ -190,42 +206,33 @@ class Parser(val tokens: List<Token>) {
         return false
     }
 
-    fun consume(type: TokenType, message: String): Token {
+    private fun consume(type: TokenType, message: String): Token {
         if (check(type)) return advance()
         throw error(peek(), message)
     }
 
-    fun check(type: TokenType): Boolean {
+    private fun check(type: TokenType): Boolean {
         if (isAtEnd()) return false
         return peek().type == type
     }
 
-    fun checkNext(type: TokenType): Boolean {
-        if (current + 1 >= tokens.size) return false
-        return tokens[current + 1].type == type
-    }
-
-    fun advance(): Token {
+    private fun advance(): Token {
         if (!isAtEnd()) current++
         return previous()
     }
 
-    fun isAtEnd(): Boolean = peek().type == EOF
+    private fun isAtEnd(): Boolean = peek().type == EOF
 
-    fun peek(): Token = tokens[current]
+    private fun peek(): Token = tokens[current]
+    private fun previous(): Token = tokens[current - 1]
 
-    fun previous(): Token = tokens[current - 1]
-
-    fun error(token: Token, message: String): ParseError {
-        if (token.type == EOF) {
-            println("[line ${token.line}] Error at end: $message")
-        } else {
-            println("[line ${token.line}] Error at '${token.lexeme}': $message")
-        }
+    private fun error(token: Token, message: String): ParseError {
+        if (token.type == EOF) println("[line ${token.line}] Error at end: $message")
+        else println("[line ${token.line}] Error at '${token.lexeme}': $message")
         return ParseError(message)
     }
 
-    fun synchronize() {
+    private fun synchronize() {
         advance()
         while (!isAtEnd()) {
             if (previous().type == SEMICOLON) return

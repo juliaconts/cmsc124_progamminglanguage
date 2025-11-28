@@ -7,14 +7,17 @@ class ASTPrinter {
 
     private fun print(stmt: Stmt?): String = when (stmt) {
         is Stmt.Program -> print(stmt.root)
-        is Stmt.ActorDecl -> "(${stmt.name.token.lexeme} ${stmt.role.token.lexeme})"
+        is Stmt.StoryboardDecl -> "(${stmt.name.token.lexeme} ${stmt.body?.let { print(it) }})"
+        is Stmt.ActorDecl -> "(${stmt.name.token.lexeme} ${stmt.role.token.lexeme} ${stmt.datatype})"
         is Stmt.AssignStmt -> "(${stmt.target.token.lexeme} ${printExpr(stmt.value)})"
         is Stmt.ActionStmt -> printExpr(stmt.action)
         is Stmt.PresentStmt -> "(${printExpr(stmt.value)})"
         is Stmt.SceneStmt -> "(${stmt.count.token.lexeme} ${stmt.body?.let { print(it) }})"
-        is Stmt.IfStmt -> "(${printExpr(stmt.condition)} ${print(stmt.thenBranch)}" +
-                (stmt.elseBranch?.let { " ${print(it)}" } ?: "") + ")"
-        is Stmt.Block -> "${print(stmt.first)} ${print(stmt.next)}"
+        is Stmt.IfStmt -> {
+            val elsePart = stmt.elseBranch?.let { " else ${print(it)}" } ?: ""
+            "(if ${printExpr(stmt.condition)} ${print(stmt.thenBranch)}$elsePart)"
+        }
+        is Stmt.Block -> listOfNotNull(stmt.first, stmt.next).joinToString(" ") { print(it) }
         else -> ""
     }
 
