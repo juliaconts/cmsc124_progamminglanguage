@@ -1,0 +1,12 @@
+storyboard LoopCount (a) {
+    Actor :: n Role :: int
+    Assign :: a to n
+    Scene :: n takes {
+        Present :: n
+        Assign :: n sub 1 to n
+    }
+} cut
+
+storyboard Main {
+    Roll :: LoopCount(5)
+} cut

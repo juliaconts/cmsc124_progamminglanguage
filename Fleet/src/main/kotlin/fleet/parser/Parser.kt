@@ -21,16 +21,46 @@ class Parser(val tokens: List<Token>) {
     private fun parseStoryboard(): Stmt? {
         consume(STORYBOARD, "Expect 'storyboard' at start.")
         val nameToken = consume(IDENTIFIER, "Expected storyboard name (identifier).")
+
         if (!nameToken.lexeme.first().isUpperCase()) {
             throw error(nameToken, "Storyboard identifier must begin with an uppercase letter.")
         }
 
-        consume(TokenType.LEFT_BRACE, "Expect '{' after storyboard name.")
-//        val body = parseBlock()
+        // ========== NEW: parse optional parameters ==========
+        val params = parseParamList()
+        // ====================================================
+
+        consume(LEFT_BRACE, "Expect '{' after storyboard header.")
 
         val body = parseBlockAfterLeftBrace("Expect '}' after storyboard block.")
         consume(END, "Expect 'cut' at end of storyboard.")
-        return Stmt.StoryboardDecl(TokenNode(nameToken), body)
+
+        // UPDATED: StoryboardDecl now expects params
+        return Stmt.StoryboardDecl(TokenNode(nameToken), params, body)
+    }
+
+    private fun parseParamList() : ParamList {
+        // If next token is NOT "(" → no params.
+        if (!match(LEFT_PAR)) return ParamList.Empty
+
+        // If "()"
+        if (match(RIGHT_PAR)) return ParamList.Empty
+
+        // Parse first parameter
+        val first = parseSingleParam()
+
+        // Parse ", param" repeats
+        var node: ParamList = first
+        while (match(COMMA)) {
+            node = ParamList.Param(
+                name = parseIdentifierNode(),
+                next = node
+            )
+        }
+        consume(RIGHT_PAR, "Expect ')' after parameters.")
+
+        // The nodes were linked backwards; reverse them:
+        return reverseParamList(node)
     }
 
 
@@ -75,11 +105,21 @@ class Parser(val tokens: List<Token>) {
         return when {
             match(VAR) -> { consume(EQUALS, "Expect '::' after 'Actor'."); actorStatement() }
             match(ASSIGN) -> { consume(EQUALS, "Expect '::' after 'Assign'."); assignStatement() }
-            match(ACTION) -> { consume(EQUALS, "Expect '::' after 'Action'."); Stmt.ActionStmt(parseExpression()) }
+            match(ACTION) -> {
+                consume(EQUALS, "Expect '::' after 'Action'.");
+                if (match(LEFT_BRACE)) {
+                    val body = parseBlockAfterLeftBrace("Expect '}' after Action block.")
+                    Stmt.ActionStmt(null, body)
+                } else {
+                    val expr = parseExpression()
+                    Stmt.ActionStmt(expr, null)
+                }
+            }
             match(PRINT) -> { consume(EQUALS, "Expect '::' after 'Present'."); presentStatement() }
             match(LOOP) -> { consume(EQUALS, "Expect '::' after 'Scene'."); sceneStatement() }
             match(IF) -> ifStatement()
             match(TokenType.LEFT_BRACE) -> { parseBlockAfterLeftBrace("Expect '}' after block.")}
+            match(CALL)-> {consume(TokenType.EQUALS, "Expect :: after Roll"); rollStatement()}
             else -> throw error(peek(), "Unexpected statement.")
         }
     }
@@ -110,10 +150,14 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun sceneStatement(): Stmt {
-        val count = consume(NUMBER, "Expect scene count.")
-        consume(TIMES, "Expect 'takes' after number.")
-        val body = parseStatement()
-        return Stmt.SceneStmt(TokenNode(count), body)
+        // Parse any expression for the scene count (literal, variable, or more complex)
+        val countExpr = parseExpression()
+        consume(TIMES, "Expect 'takes' after scene count expression.")
+
+        consume(LEFT_BRACE, "Expect '{' after 'takes'.")
+        val body = parseBlockAfterLeftBrace("Expect '}' after Scene block.")
+
+        return Stmt.SceneStmt(countExpr, body)
     }
 
     private fun ifStatement(): Stmt {
@@ -127,8 +171,44 @@ class Parser(val tokens: List<Token>) {
         return Stmt.IfStmt(condition, thenBranch, elseBranch)
     }
 
+    private fun rollStatement(): Stmt.RollStmt {
+        val nameToken = expectIdentifier()  // storyboard name
+        var args: Map<String, Expr>? = null
+
+        if (match(LEFT_PAR)) {
+            // Only one argument allowed
+            if (!check(RIGHT_PAR)) {
+                val expr = parseExpression()
+                args = mapOf("arg" to expr)  // just use a fixed key like "arg"
+            }
+            consume(RIGHT_PAR, "Expected ')' after argument")
+        }
+
+        return Stmt.RollStmt(TokenNode(nameToken), args)
+    }
+
     // ===== Expressions =====
-    private fun parseExpression(): Expr = equality()
+    private fun parseExpression(): Expr = or()
+
+    private fun or(): Expr {
+        var expr = and()
+        while (match(OR)) {
+            val operator = previous()
+            val right = and()
+            expr = Expr.Binary(expr, TokenNode(operator), right)
+        }
+        return expr
+    }
+
+    private fun and(): Expr {
+        var expr = equality()
+        while (match(AND)){
+            val operator = previous()
+            val right = equality()
+            expr = Expr.Binary(expr, TokenNode(operator), right)
+        }
+        return expr
+    }
 
     private fun equality(): Expr {
         var expr = comparison()
@@ -243,4 +323,38 @@ class Parser(val tokens: List<Token>) {
             advance()
         }
     }
+
+    private fun parseSingleParam(): ParamList.Param {
+        val name = consume(IDENTIFIER, "Expected parameter name.")
+        return ParamList.Param(TokenNode(name), null)
+    }
+
+    private fun parseIdentifierNode(): TokenNode {
+        val name = consume(IDENTIFIER, "Expected parameter name.")
+        return TokenNode(name)
+    }
+
+    // Because linked list was built backward due to recursive construction
+    private fun reverseParamList(list: ParamList): ParamList {
+        var curr = list
+        var prev: ParamList = ParamList.Empty
+
+        while (curr is ParamList.Param) {
+            val next = curr.next
+            prev = ParamList.Param(curr.name, prev)
+            curr = next ?: break
+        }
+        return prev
+    }
+
+    fun expectIdentifier(): Token {
+        val token = peek()  // peek() returns the current token
+        if (token.type == TokenType.IDENTIFIER) {
+            advance()      // move to the next token
+            return token
+        } else {
+            throw RuntimeException("Expected identifier but got ${token.lexeme}")
+        }
+    }
+
 }
