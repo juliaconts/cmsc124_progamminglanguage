@@ -11,72 +11,71 @@ Storyboard disallows mutable shared state and prevents values from being accesse
 Keywords 
 
 Special keywords:	
-“storyboard” defines a storyboard block 
-“cut” defines the end of a storyboard block,
-"Actor" defines a variable,
-"Role" specifies the datatype of an Actor,
-“Assign” assigns a value to an Actor,
-“Action” defines an operation/expression/statement to perform,
-“Roll” calls another storyboard or subroutine.
+	“storyboard” defines a storyboard block 
+	“cut” defines the end of a storyboard block,
+	"Actor" defines a variable,
+	"Role" specifies the datatype of an Actor,
+	“Assign” assigns a value to an Actor,
+	“Action” defines an operation/expression/statement to perform,
+	“Roll” calls another storyboard or subroutine.
 
 Variables and Functions:
-"return" returns a value
-“Set” defines a standalone function or global routine
-“to” used in assignment expressions (e.g. Assign :: 5 to x)
+	"return" returns a value
+	“Set” defines a standalone function or global routine
+	“to” used in assignment expressions (e.g. Assign :: 5 to x)
 
 Variable Types:
-"int" for integers, 
-"float" for floats, 
-"char" for single characters, 
-“bool” for boolean logic
-"String" for strings
+	"int" for integers, 
+	"float" for floats, 
+	"char" for single characters, 
+	“bool” for boolean logic
+	"String" for strings
 
 Control Flow: 
-"if" for conditional branching, 
-"else" for alternate branches, 
-"Scene” introduces a loop with a specified number of “takes” (iterations),
-“takes” indicates how many iterations a Scene will run,
-“for each” - enables to print each iteration in a loop
+	"if" for conditional branching, 
+	"else" for alternate branches, 
+	"Scene” introduces a loop with a specified number of “takes” (iterations),
+	“takes” indicates how many iterations a Scene will run
 
 Logical Values: 
-"TRUE" or "FALSE" boolean values, 
-"null" - null values
+	"TRUE" or "FALSE" boolean values, 
+	"null" - null values
 
 Arithmetic keywords (DSL-specific):	
-“add” for addition,
-“sub” for subtraction,
-“mul” for multiplication,
-“div” for division	
+	“add” for addition,
+	“sub” for subtraction,
+	“mul” for multiplication,
+	“div” for division	
 			
 Operators 
 
 Assignment: "::"
 
 Arithmetic: 
-"+" for addition, 
-"-" for subtraction, 
-"*" for multiplication,
-"/" for division
+	"+" for addition, 
+	"-" for subtraction, 
+	"*" for multiplication,
+	"/" for division
 
 Comparison: 
-"==" for equality, 
-"!=" for not equal, 
-"<" for less than, 
-"<=" for less than or equal to, 
-">" for greater than, 
-">=" for greater than or equal to
-*comparison is not allowed for different types (e.g. int cannot be compared to a char)
+	"==" for equality, 
+	"!=" for not equal, 
+	"<" for less than, 
+	"<=" for less than or equal to, 
+	">" for greater than, 
+	">=" for greater than or equal to
+	*comparison is not allowed for different types (e.g. int cannot be compared to a char)
 
 Logical operators: 
-"!" - logical NOT, 
-"AND" - logical AND, 
-"OR" - logical OR
+	"!" - logical NOT, 
+	"AND" - logical AND, 
+	"OR" - logical OR
 
 Grouping:
-() - grouping expressions and precedence control.
-{} - denotes function or storyboard bodies.
-"," - separator for parameters or lists, 
-"." - member access or chaining, 
+	() - grouping expressions and precedence control.
+	{} - denotes function or storyboard bodies.
+	"," - separator for parameters or lists, 
+	"." - member access or chaining, 
 
 Literals
 
