@@ -41,7 +41,7 @@ Logical Values:
 	"TRUE" or "FALSE" boolean values, 
 	"null" - null values
 
-Arithmetic keywords (DSL-specific):	
+Arithmetic keywords:	
 	“add” for addition,
 	“sub” for subtraction,
 	“mul” for multiplication,
