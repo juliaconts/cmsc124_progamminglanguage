@@ -86,14 +86,14 @@ Literal are assigned using the syntax:
 Numerical Literals
 Numeric values are written directly as digits and support integer and float values. If no value is assigned, numerical Actors receive default values of 0 and 0.0. Action statements can have (pure arithmetic operations)
 Example:
-Actor :: x Role :: int		Actor :: speed  Role :: float		Action :: 2 add 2
-Assign :: 10 to x			Assign :: 2.75 to speed
+	Actor :: x Role :: int		Actor :: speed  Role :: float		Action :: 2 add 2
+	Assign :: 10 to x			Assign :: 2.75 to speed
 
 String and Character literals
 Character literals and string literals should be both enclosed in double quotes.
 Example:
-Actor :: key Role :: char		Actor :: name Role :: String
-Assign :: “c” to key			Assign :: “Abcde” to name
+	Actor :: key Role :: char		Actor :: name Role :: String
+	Assign :: “c” to key			Assign :: “Abcde” to name
 
 Identifiers 
 Identifiers represent Actors and follow the following rules:
@@ -113,13 +113,13 @@ Comments
 Single-line Comments
 	- Single-line comments will begin with # and continue until the end of the line.
 Example: 
-# This is a single-line comment
+	# This is a single-line comment 
 
 Group (Block) Comments
 	- Group comments begin with ## and end at the next occurrence of ##. They can span multiple lines but cannot be nested.
 Example:
-## This is a group comment
-     This is a group comment ##
+	## This is a group comment
+     	This is a group comment ##
 
 Syntax Style 
 
