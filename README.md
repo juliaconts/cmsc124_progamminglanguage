@@ -3,14 +3,12 @@ Storyboard
 Creators Julo Bretaña and Julia Louise Contreras
 
 Language Overview 
-[Provide a brief description of your programming language - what it's designed for, its main characteristics] 
 
 Storyboard is a functional programming language designed to promote clarity, immutability, and safe computation. It is inspired by both the readability of Python, the precision of functional languages, and the structure of film directing. Just as movies are organized into scenes, actors, and takes, Storyboard maps these cinematic concepts into programming constructs—making code feel like writing a script. This design helps beginners visualize program flow as a sequence of controlled, well-defined steps.
 
 Storyboard disallows mutable shared state and prevents values from being accessed outside their defining scope, ensuring predictable, side-effect-free execution. It is particularly suited for learning foundational programming concepts, modeling computations, transforming data, and writing small, verifiable programs. By emphasizing pure functions, clear structure, and human-readable syntax, Storyboard offers a gentle, narrative-inspired entry point into functional programming.
 
 Keywords 
-[List all reserved words that cannot be used as identifiers - include the keyword and a brief description of its purpose] 
 
 Special keywords:	
 “storyboard” defines a storyboard block 
@@ -51,7 +49,6 @@ Arithmetic keywords (DSL-specific):
 “div” for division	
 			
 Operators 
-[List all operators organized by category (arithmetic, comparison, logical, assignment, etc.)]
 
 Assignment: "::"
 
@@ -82,7 +79,6 @@ Grouping:
 "." - member access or chaining, 
 
 Literals
-Storyboard supports several types of literal values. Each literal must match the datatype declared for an Actor declarations and Assign statements. 
 
 Literal are assigned using the syntax:
 	Actor :: <identifier> Role :: <datatype>
@@ -91,7 +87,7 @@ Literal are assigned using the syntax:
 Numerical Literals
 Numeric values are written directly as digits and support integer and float values. If no value is assigned, numerical Actors receive default values of 0 and 0.0. Action statements can have (pure arithmetic operations)
 Example:
-Actor :: x Role :: int			Actor :: speed  Role :: float		Action :: 2 add 2
+Actor :: x Role :: int		Actor :: speed  Role :: float		Action :: 2 add 2
 Assign :: 10 to x			Assign :: 2.75 to speed
 
 String and Character literals
@@ -102,11 +98,11 @@ Assign :: “c” to key			Assign :: “Abcde” to name
 
 Identifiers 
 Identifiers represent Actors and follow the following rules:
-Must begin with a letter (A-Z, a-z) or underscore ( _ ) but cannot start with a number or other special characters. 
-Can include letters, numbers, and underscores
-Are strictly case-sensitive
-Cannot contain spaces or special characters
-Cannot be a reserved keyword from the language
+	- Must begin with a letter (A-Z, a-z) or underscore ( _ ) but cannot start with a number or other special characters. 
+	- Can include letters, numbers, and underscores
+	- Are strictly case-sensitive
+	- Cannot contain spaces or special characters
+	- Cannot be a reserved keyword from the language
 
 Identifiers for defining a storyboard must begin with an uppercase letter
 Example: Test, CountDown, Get_num
@@ -116,18 +112,17 @@ Invalid identifiers: 1number, player-health, Scene, get num
 
 Comments 
 Single-line Comments
-Single-line comments will begin with # and continue until the end of the line.
+	- Single-line comments will begin with # and continue until the end of the line.
 Example: 
 # This is a single-line comment
 
 Group (Block) Comments
-Group comments begin with ## and end at the next occurrence of ##. They can span multiple lines but cannot be nested.
+	- Group comments begin with ## and end at the next occurrence of ##. They can span multiple lines but cannot be nested.
 Example:
 ## This is a group comment
      This is a group comment ##
 
 Syntax Style 
-[Describe whether whitespace is significant, how statements are terminated, and what delimiters are used for blocks and grouping] 
 
 Storyboard uses a syntax style that behaves like a wrapper function while also resembling a lightweight, struct-like block. A storyboard encloses its own variables (Actors), actions, and logic, creating a self-contained unit of gameplay behavior.
 
@@ -152,54 +147,52 @@ storyboard PrintNumber () {
 	Assign :: 10 to x
 	Present :: x
 } cut
+
 storyboard AddTwoNumbers {
-Actor :: a Role :: int
-    	Assign :: 5 to a
-
-    	Actor :: b Role :: int
-Assign :: 7 to b
-
-Action :: a add b
-Present :: a
+	Actor :: a Role :: int
+    Assign :: 5 to a
+    Actor :: b Role :: int
+	Assign :: 7 to b
+	Action :: a add b
+	Present :: a
 } cut
 
 Looping: 
 storyboard LoopCount {
-Actor :: i Role :: int
-    	Assign :: 3 to i
-
-    	Scene :: 3 takes
-        	Present :: for each (i)
-        	Action :: i add -1
+	Actor :: i Role :: int
+    Assign :: 3 to i
+    Scene :: 3 takes {
+        Present :: i
+        Action :: i add -1
+	}
 } cut
 
 If-else Statements:
 storyboard CheckNumber {
-Actor :: x Role :: int
-Assign :: 8 to x
-Action ::
-     if (x > 5) {
-          Present :: x
-     } else {
-          Present :: 0
-     }
+	Actor :: x Role :: int
+	Assign :: 8 to x
+	Action :: {
+	     if (x > 5) {
+	          Present :: x
+	     } else {
+	          Present :: 0
+	     }
+	}
 } cut
 
 storyboard ReturnExample {
-Actor :: x Role :: int
-    	Assign :: 20 to x
-
-    	Action ::
-        	     if (x == 20) {
-                      return x
-                 }
+	Actor :: x Role :: int
+    Assign :: 20 to x
+    Action :: {
+		if (x == 20) {
+			return x
+        }
+	}
     Present :: x
 } cut
 
-
 	
 Design Rationale 
-[Explain the reasoning behind your design choices] 
 
 Storyboard was designed with the goal of making general-purpose programming more readable, structured, and approachable, while maintaining a level of formality suitable for parsing, static analysis, and compilation. The language adopts a block-oriented syntax that provides programmers with an intuitive mental model: each block represents a self-contained unit of computation governed by clear inputs, transformations, and outputs. This encourages writing programs as small, predictable components rather than large, state-heavy procedures.
 
