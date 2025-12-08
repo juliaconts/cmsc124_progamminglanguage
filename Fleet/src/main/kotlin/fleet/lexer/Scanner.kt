@@ -1,6 +1,5 @@
 package main.kotlin.fleet.lexer
 
-import main.kotlin.fleet.common.*
 import main.kotlin.fleet.lexer.KeywordFactory.keywords
 
 class Scanner(val source: String) {
@@ -23,7 +22,7 @@ class Scanner(val source: String) {
     // *main loop to determine if scanned text is a token
     fun scanTokens() {
         when (val curr = next()) { // *iterates through text, see function definition below
-            // single-character tokens
+            // group delimiters
             '(' -> addToken(TokenType.LEFT_PAR)
             ')' -> addToken(TokenType.RIGHT_PAR)
             '{' -> addToken(TokenType.LEFT_BRACE)
@@ -31,10 +30,12 @@ class Scanner(val source: String) {
             ',' -> addToken(TokenType.COMMA)
             '.' -> addToken(TokenType.DOT)
             ';' -> addToken(TokenType.SEMICOLON)
-            '+' -> addToken(TokenType.PLUS)
-            '-' -> addToken(TokenType.MINUS)
-            '*' -> addToken(TokenType.STAR)
-            '/' -> addToken(TokenType.SLASH)
+            '-' -> addToken(TokenType.NEGATIVE)
+
+            ':' -> {
+                if (match(':')) addToken(TokenType.EQUALS)
+                else addToken(TokenType.COLON)
+            }
 
             // possible multiple-character tokens
             '!' -> addToken(if (match('=')) TokenType.NOT_EQUAL else TokenType.NOT)
@@ -42,10 +43,8 @@ class Scanner(val source: String) {
             '<' -> addToken(if (match('=')) TokenType.LESSER_EQUAL else TokenType.LESSER)
             '>' -> addToken(if (match('=')) TokenType.GREATER_EQUAL else TokenType.GREATER)
 
-            // comments
-//            '#' ->   { // *! multiple line comments
-//                while (peek() != '\n' && !endOfLine()) next()
-//            }
+//             comments
+            '#' -> comment()
 
             //whitespace
             ' ', '\r', '\t' -> {}   //ignore spaces
@@ -56,20 +55,25 @@ class Scanner(val source: String) {
 
             else -> when {
                 curr.isDigit() -> number()
-                curr.isLetter() || curr == '_' || curr == '#' || curr == '@' ||
-                        curr == '%' || curr == '^' || curr == '?' -> identifier()
-
+                curr.isLetter() || curr == '_' -> identifier()
                 else -> println("Unexpected character '$curr' at line $line")
             }
         }
     }
 
-    fun identifier() {
-        while (peek().isLetterOrDigit() || peek() == '_' || peek() == '#' || peek() == '@' ||
-            peek() == '%' || peek() == '^' || peek() == '?'
-        ) {
-            next()
+    fun comment() {
+        if (match('#')) {
+            while(!(peek() == '#' && peekNext() == '#') && !endOfLine()) {
+                if (peek() == '\n') line++
+                next()
+            }
+            if (!endOfLine()) {next(); next()}
+        } else {
+            while (peek() != '\n' && !endOfLine()) next()
         }
+    }
+    fun identifier() {
+        while (peek().isLetterOrDigit() || peek() == '_') next()
         val text = source.substring(start, current)
         val type = keywords[text] ?: TokenType.IDENTIFIER
 
@@ -106,6 +110,7 @@ class Scanner(val source: String) {
             println("Unterminated string at line $line")
             return
         }
+
         next()
         val value = source.substring(start + 1, current - 1)
         addToken(TokenType.STRING, value)
@@ -120,5 +125,21 @@ class Scanner(val source: String) {
         }
         val value = source.substring(start, current).toDouble()
         addToken(TokenType.NUMBER, value)
+    }
+
+    fun peek(): Char = if (endOfLine()) '\u0000' else source[current] // *peeks at current character
+    fun peekNext(): Char = if (current + 1 >= source.length) '\u0000' else source[current + 1] // *peeks at next character
+    fun endOfLine(): Boolean = current >= source.length
+    fun next(): Char = source[current++] // *reads through text
+    fun addToken(type: TokenType, literal: Any? = null) { // *adds token to mutable list of tokens
+        val text = source.substring(start, current)
+        readTokens.add(Token(type, text, literal, line))
+    }
+
+    fun match(expected: Char): Boolean { // *used in possible multiple character tokens, checks if character after token changes token type
+        if (endOfLine()) return false
+        if (source[current] != expected) return false
+        current++
+        return true
     }
 }

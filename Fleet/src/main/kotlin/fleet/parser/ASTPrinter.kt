@@ -1,68 +1,42 @@
 package main.kotlin.fleet.parser
 
 class ASTPrinter {
-
-    /** Print all top-level statements in a program. */
-    fun printProgram(statements: List<Stmt>) {
-        for (stmt in statements) {
-            println(formatStmt(stmt))
-        }
+    fun printStmt(stmt: Stmt?) {
+        println(print(stmt))
     }
 
-    /** Format a statement into a readable string. */
-    private fun formatStmt(stmt: Stmt): String {
-        return when (stmt) {
-            is Stmt.Expression -> "(expr ${formatExpr(stmt.expression)})"
-            is Stmt.VarDecl -> {
-                val type = stmt.type?.lexeme ?: "var"
-                "(var $type ${stmt.name.lexeme} = ${formatExpr(stmt.initializer)})"
+    private fun print(stmt: Stmt?): String = when (stmt) {
+        is Stmt.Program -> print(stmt.root)
+        is Stmt.StoryboardDecl -> "(${stmt.name.token.lexeme} ${stmt.body?.let { print(it) }})"
+        is Stmt.ActorDecl -> "(${stmt.name.token.lexeme} ${stmt.role.token.lexeme} ${stmt.datatype})"
+        is Stmt.AssignStmt -> "(${stmt.target.token.lexeme} ${printExpr(stmt.value)})"
+        is Stmt.ActionStmt -> {
+            when {
+                stmt.expr != null -> "(Action ${printExpr(stmt.expr)})"
+                stmt.body != null -> "(Action ${print(stmt.body)})"
+                else -> "(Action)"
             }
-            is Stmt.FunDecl -> {
-                val params = stmt.params.joinToString(" ") { it.lexeme }
-                val body = stmt.body.joinToString(" ") { formatStmt(it) }
-                "(def ${stmt.name.lexeme} ($params) $body)"
-            }
-            is Stmt.ReturnStmt -> "(return ${stmt.value?.let { formatExpr(it) } ?: "nil"})"
-            is Stmt.IfStmt -> {
-                val cond = formatExpr(stmt.condition)
-                val then = formatStmt(stmt.thenBranch)
-                val els = stmt.elseBranch?.let { " else ${formatStmt(it)}" } ?: ""
-                "(if $cond then $then$els)"
-            }
-            is Stmt.WhileStmt -> "(while ${formatExpr(stmt.condition)} ${formatStmt(stmt.body)})"
-            is Stmt.Block -> stmt.statements.joinToString(" ") { formatStmt(it) }.let { "(block $it)" }
-
-            else -> "(unknown-stmt)"
         }
+        is Stmt.PresentStmt -> "(${printExpr(stmt.value)})"
+        is Stmt.SceneStmt -> {
+            val countStr = printExpr(stmt.countExpr)             // print the expression
+            val bodyStr = stmt.body?.let { print(it) } ?: ""    // print the body recursively
+            "Scene($countStr) { $bodyStr }"
+        }
+        is Stmt.IfStmt -> {
+            val elsePart = stmt.elseBranch?.let { " else ${print(it)}" } ?: ""
+            "(if ${printExpr(stmt.condition)} ${print(stmt.thenBranch)}$elsePart)"
+        }
+        is Stmt.Block -> listOfNotNull(stmt.first, stmt.next).joinToString(" ") { print(it) }
+        else -> ""
     }
 
-    /** Format an expression into a readable string. */
-    private fun formatExpr(expr: Expr): String {
-        return when (expr) {
-            is Expr.Assign -> "(assign ${expr.name.lexeme} ${formatExpr(expr.value)})"
-            is Expr.Binary -> parenthesize(expr.operator.lexeme, expr.left, expr.right)
-            is Expr.Logical -> parenthesize(expr.operator.lexeme, expr.left, expr.right)
-            is Expr.Unary -> parenthesize(expr.operator.lexeme, expr.right)
-            is Expr.Grouping -> parenthesize("group", expr.expression)
-            is Expr.Literal -> expr.value?.toString() ?: "null"
-            is Expr.Variable -> expr.name.lexeme
-            is Expr.Call -> {
-                val args = expr.arguments.joinToString(" ") { formatExpr(it) }
-                "(call ${formatExpr(expr.callee)} $args)"
-            }
-
-            else -> "(unknown-expr)"
-        }
-    }
-
-    /** Helper to make "(op arg1 arg2)" style expressions. */
-    fun parenthesize(name: String, vararg exprs: Expr): String {
-        val builder = StringBuilder()
-        builder.append("(").append(name)
-        for (expr in exprs) {
-            builder.append(" ").append(formatExpr(expr))
-        }
-        builder.append(")")
-        return builder.toString()
+    private fun printExpr(expr: Expr?): String = when (expr) {
+        is Expr.Literal -> expr.value.toString()
+        is Expr.Variable -> expr.name.token.lexeme
+        is Expr.Grouping -> printExpr(expr.expression)
+        is Expr.Unary -> "(${expr.operator.token.lexeme} ${printExpr(expr.right)})"
+        is Expr.Binary -> "(${expr.operator.token.lexeme} ${printExpr(expr.left)} ${printExpr(expr.right)})"
+        else -> ""
     }
 }

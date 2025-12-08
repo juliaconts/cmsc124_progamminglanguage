@@ -1,214 +1,124 @@
-Storyboard
+Fleet
 
 Creators Julo Bretaña and Julia Louise Contreras
 
 Language Overview 
 [Provide a brief description of your programming language - what it's designed for, its main characteristics] 
+Fleet is a general-purpose language that aims to be readable and simple. Its syntax style makes for quicker coding and is beginner-friendly.
 
-Storyboard is a functional programming language designed to promote clarity, immutability, and safe computation. It focuses more in a general-purpose language centered around pure functions, expression-driven evaluation, and strict value encapsulation. Inspired by the readability of Python and the mathematical precision of functional languages, Storyboard disallows mutable shared state and prevents values from being accessed outside their defining scope. This ensures that programs are predictable, side-effect-free, and easier for beginners to reason about. 
+Keywords [List all reserved words that cannot be used as identifiers - include the keyword and a brief description of its purpose] 
+variables and functions: "var" defines a variable, "def" defines a function, "return" returns a value
 
-Storyboard is particularly suited for learning foundational programming concepts, modeling computations, transforming data, building pipelines, and writing small, verifiable programs. By emphasizing pure functions, lexical scoping, and human-readable syntax, Storyboard offers a gentle entry point into functional programming while still enabling expressive and structured problem solving.
+variable types: "int" for integers, 
+                "flt" for floats, 
+                "char" for single characters, 
+                "String" for strings
 
-Keywords 
-[List all reserved words that cannot be used as identifiers - include the keyword and a brief description of its purpose] 
+control flow: "if" for conditional branching, 
+              "else" for alternate branches, 
+              "while" for looping while condition is true, 
+              "for" for iterated loops
 
-Special keywords:	
-“storyboard” defines a storyboard block 
-“cut” defines the end of a storyboard block,
-"Actor" defines a variable,
-"Role" specifies the datatype of an Actor,
-“Assign” assigns a value to an Actor,
-“Action” defines an operation/expression/statement to perform,
-“Roll” calls another storyboard or subroutine.
+logical values: "TRUE" or "FALSE" - boolean values, "null" - null values
 
-Variables and Functions:
-"return" returns a value
-“Set” defines a standalone function or global routine
-“to” used in assignment expressions (e.g. Assign :: 5 to x)
-
-Variable Types:
-"int" for integers, 
-"float" for floats, 
-"char" for single characters, 
-“bool” for boolean logic
-"String" for strings
-
-Control Flow: 
-"if" for conditional branching, 
-"else" for alternate branches, 
-"Scene” introduces a loop with a specified number of “takes” (iterations),
-“takes” indicates how many iterations a Scene will run,
-“for each” - enables to print each iteration in a loop
-
-Logical Values: 
-"TRUE" or "FALSE" boolean values, 
-"null" - null values
-
-Arithmetic keywords (DSL-specific):	
-“add” for addition,
-“sub” for subtraction,
-“mul” for multiplication,
-“div” for division	
-			
 Operators 
-[List all operators organized by category (arithmetic, comparison, logical, assignment, etc.)]
+[List all operators organized by category (arithmetic, comparison, logical, assignment, etc.)] 
 
-Assignment: "::"
+assignment: "="
 
-Arithmetic: 
-"+" for addition, 
-"-" for subtraction, 
-"*" for multiplication,
-"/" for division
+arithmetic: "+" for addition, "-" for subtraction, "*" for multiplication, "/" for division
 
-Comparison: 
-"==" for equality, 
-"!=" for not equal, 
-"<" for less than, 
-"<=" for less than or equal to, 
-">" for greater than, 
-">=" for greater than or equal to
-*comparison is not allowed for different types (e.g. int cannot be compared to a char)
+comparison: "==" for equality, 
+            "!=" for not equal, 
+            "<" for less than, 
+            "<=" for less than or equal to, 
+            ">" for greater than, 
+            ">=" for greater than or equal to
 
-Logical operators: 
-"!" - logical NOT, 
-"AND" - logical AND, 
-"OR" - logical OR
+comparison is not allowed for different types (e.g. int cannot be compared to a char)
 
-Grouping:
-() - grouping expressions and precedence control.
-{} - denotes function or storyboard bodies.
-"," - separator for parameters or lists, 
-"." - member access or chaining, 
+logical: "!" - logical NOT, "AND" - logical AND, "OR" - logical OR
 
-Literals
-Storyboard supports several types of literal values. Each literal must match the datatype declared for an Actor declarations and Assign statements. 
+grouping: () - function calls and read operator precedence, {} - function body, ","(comma), "."(dot), ";"(semicolon)
 
-Literal are assigned using the syntax:
-	Actor :: <identifier> Role :: <datatype>
-	Assign :: <literal> to <identifier>
+Literals 
+[Describe the format and syntax for each type of literal value (e.g., numbers, strings, characters, etc.) your language supports] 
+numerical and character literals will be defined by the "var" keyword, followed by their variable type, then variable name, then the assignment operator "=", 
+ex. var int foo = 10, var float bar = 12.34, var char coo = "c"
 
-Numerical Literals
-Numeric values are written directly as digits and support integer and float values. If no value is assigned, numerical Actors receive default values of 0 and 0.0. Action statements can have (pure arithmetic operations)
-Example:
-Actor :: x Role :: int			Actor :: speed  Role :: float		Action :: 2 add 2
-Assign :: 10 to x			Assign :: 2.75 to speed
+String literals will be defined by the "var" keyword, followed by their variable type, then variable name, 
+then the assignment operator "=", then the string enclosed in quotation marks, ex. String vim = "Abcde"
 
-String and Character literals
-Character literals and string literals should be both enclosed in double quotes.
-Example:
-Actor :: key Role :: char		Actor :: name Role :: String
-Assign :: “c” to key			Assign :: “Abcde” to name
+default values are given to numerical literals if no values are assigned, ex. var int foo, var float bar foo = 0, bar = 0.0
 
 Identifiers 
-Identifiers represent Actors and follow the following rules:
-Must begin with a letter (A-Z, a-z) or underscore ( _ ) but cannot start with a number or other special characters. 
-Can include letters, numbers, and underscores
-Are strictly case-sensitive
-Cannot contain spaces or special characters
-Cannot be a reserved keyword from the language
+[Define the rules for valid identifiers (variable names, function names, etc.) and whether they are case-sensitive] 
+identifiers cannot begin with a number
 
-Identifiers for defining a storyboard must begin with an uppercase letter
-Example: Test, CountDown, Get_num
+identifiers are case-sensitive, ex. fooBar != foobar
 
-Valid identifiers: FooBar, enemyHP, _xp, shield_value, boss4
-Invalid identifiers: 1number, player-health, Scene, get num
+identifiers only accept letters, digits (if they are not the first character), and underscore(_)
 
-Comments 
-Single-line Comments
-Single-line comments will begin with # and continue until the end of the line.
-Example: 
-# This is a single-line comment
-
-Group (Block) Comments
-Group comments begin with ## and end at the next occurrence of ##. They can span multiple lines but cannot be nested.
-Example:
-## This is a group comment
-     This is a group comment ##
+Comments
+[Describe the syntax for comments and whether nested comments are supported] 
+single-line comments will be signified by # at the start and will end once the line ends 
+group comments will be signified by ## at the start and will end at ## 
+nested comments will not be supported
 
 Syntax Style 
-[Describe whether whitespace is significant, how statements are terminated, and what delimiters are used for blocks and grouping] 
-
-Storyboard uses a syntax style that behaves like a wrapper function while also resembling a lightweight, struct-like block. A storyboard encloses its own variables (Actors), actions, and logic, creating a self-contained unit of gameplay behavior.
-
-Whitespaces
-- Indentation is enforced. Nested or interior statements inside a storyboard must be intended consistently for the parser to accept the block structure
-- Newlines matter only for readability and for line-number tracking, not for execution order.
-- Extra spaces around operators and delimiters are allowed but cannot break tokens. 
-
-Statement Termination
-Fleet does not use semicolons. A statement ends when the line ends.
-
-Block Delimiters
-- Curly braces { } define the body of a storyboard
-- Parentheses ( ) are used for grouping arguments to be passed on a storyboard, arithmetic grouping and expression precedence.
-- Every storyboard must end with the closing } followed by the “cut” keyword.
+[Describe whether whitespace is significant, how statements are terminated, and what delimiters are used for blocks and grouping]
+The statements will terminate once there is a semicolon at the end of grouped code.
+Whitespace is not significant except for newlines when you want to track line numbers.
+The delimeters used for blocks are braces - {} while for grouping it will use parentheses - ()
 
 Sample Code 
-[Provide a few examples of valid code in your language to demonstrate the syntax and features] 
+[Provide a few examples of valid code in your language to demonstrate the syntax and features]
+    for (item in items) { 
+        item++; 
+        print(item); 
+    }
 
-storyboard PrintNumber () {
-	Actor :: x Role :: int
-	Assign :: 10 to x
-	Present :: x
-} cut
-storyboard AddTwoNumbers {
-Actor :: a Role :: int
-    	Assign :: 5 to a
+    def newItem (item) { 
+        print(item); 
+    }
 
-    	Actor :: b Role :: int
-Assign :: 7 to b
-
-Action :: a add b
-Present :: a
-} cut
-
-Looping: 
-storyboard LoopCount {
-Actor :: i Role :: int
-    	Assign :: 3 to i
-
-    	Scene :: 3 takes
-        	Present :: for each (i)
-        	Action :: i add -1
-} cut
-
-If-else Statements:
-storyboard CheckNumber {
-Actor :: x Role :: int
-Assign :: 8 to x
-Action ::
-     if (x > 5) {
-          Present :: x
-     } else {
-          Present :: 0
-     }
-} cut
-
-storyboard ReturnExample {
-Actor :: x Role :: int
-    	Assign :: 20 to x
-
-    	Action ::
-        	     if (x == 20) {
-                      return x
-                 }
-    Present :: x
-} cut
-
-
-	
 Design Rationale 
 [Explain the reasoning behind your design choices] 
+The design of Fleet follows a readable structure to make coding straightforward and maintainable.
 
-Storyboard was designed with the goal of making general-purpose programming more readable, structured, and approachable, while maintaining a level of formality suitable for parsing, static analysis, and compilation. The language adopts a block-oriented syntax that provides programmers with an intuitive mental model: each block represents a self-contained unit of computation governed by clear inputs, transformations, and outputs. This encourages writing programs as small, predictable components rather than large, state-heavy procedures.
+1. Language goals that guided design 
+   - High-level language like Python with added C-like surface where braces {} and semicolons ; to its syntax making the language familiar to many programmers and simplify block parsing. 
+   - Small, explicit keyword sets making the set of reserved words keep the grammar easy to learn and implement 
+   - Type clarity and safety by disallowing implicit, cross-type comparisons reduces surprising behavior and keeps the parser/type-checker simple
+   
+2. Keywords and reserved words
+   - keywords were selected to mirror widely used languages (Python and C) minimizing the learning curve for new users.
+   - separate type keywords (int, float, char, String) emphasize strong typing while keeping variable declarations explicit. 
+   - Control flow constructs (is, else, while, for) are familiar and align with common imperative paradigms, making translation from other languages straightforward.
 
-The decision to structure a block like a lightweight function with explicitly declared values, followed by transformations and a final expression supports Storyboard’s functional programming foundation. By keeping data immutable and enforcing lexical scope, Storyboard ensures that each block behaves as a pure computational step. This predictable flow reduces cognitive load, prevents side effects, and allows beginners to reason about programs in a linear, mathematically grounded way. The result is a language that is expressive enough for general computation yet constrained enough to encourage correctness, clarity, and safe programming habits.
+3. Operators 
+   - arithmetic and comparison operators are kept consistent with mathematical conventions and other mainstream languages, reducing ambiguity. 
+   - Logical operators (!, and, or) provide clear boolean logic while avoiding overloading symbols for readability. 
+   - Assignment uses a single = to alignn with most imperative languages.
 
-Storyboard’s keywords were chosen for readability over conventional programming syntax. Instead of symbols or cryptic operators, semantic keywords like Actor, Assign, Action, and Present make the language approachable for new developers while still mapping cleanly to common programming concepts. Arithmetic operators are expressed through action verbs (e.g., add, sub, mul, div) to reinforce the idea that Actions explicitly do something to an Actor, mirroring game mechanics.
+4. Literals 
+   - Default initialization (e.g., var int foo = 0) prevents undefined behavior and runtime errors. 
+   - String literals enclosed in quotes "..." ensure compatibility with common text processing needs while being easy to parse.
 
-Identifiers follow strict but simple rules to encourage clean coding habits and avoid ambiguities during parsing. Storyboard identifiers begin with uppercase letters to visually distinguish phase definitions from game variables (Actors). This mirrors conventions found in many languages, improving readability and aiding code navigation.
+5. Identifiers 
+   - Case sensitivity allows more expressive meaning (e.g., fooBar vs foobar) and aligns with widely used conventions. 
+   - Restricting the first character from being a digit ensures valid parsing without ambiguity.
 
-Indentation is required to emphasize structure, reinforce clarity, and avoid visually ambiguous code. However, semicolons are omitted to reduce syntactic noise fitting the language’s goal of being approachable and human-readable.
+6. Comments
+   - Single-line (#) and block (## ... ##) comment systems were chosen for simplicity and readability.
+   - Explicitly disallowing nested comments avoids implementation complexity and ambiguity during scanning.
+   
+7. Syntax style
 
-Overall, each design choice in Storyboard aims to balance approachability, expressiveness, and structural clarity—making it easier for beginners to understand while providing enough rigor for predictable compilation and execution.
+   - Whitespace is not significant except for line tracking, reducing programmer burden and keeping the scanner/tokenizer simple.
+   - Semicolons explicitly mark the end of statements, simplifying parsing and reducing ambiguity.
+   - Curly braces {} clearly define code blocks, making nested structures easy to read and parse.
+   
+8. Readability and accessibility
+   - Fleet’s syntax is designed to look familiar to anyone with C, Java, or Python background, easing adoption.
+   - The language avoids “clever” shortcuts, prioritizing clarity and explicitness.
