@@ -19,6 +19,7 @@ interface Expr {
 
 interface Stmt {
     data class Program(val root: Stmt?) : Stmt
+    data class ProgramList(val statements: List<Stmt>) : Stmt
     data class StoryboardDecl(val name: TokenNode, val params: ParamList, val body: Stmt?) : Stmt
     data class Block(val first: Stmt?, val next: Stmt?) : Stmt
     data class ActorDecl(val name: TokenNode, val role: TokenNode, val datatype: String) : Stmt
@@ -28,4 +29,5 @@ interface Stmt {
     data class SceneStmt(val countExpr: Expr, val body: Stmt?) : Stmt
     data class IfStmt(val condition: Expr, val thenBranch: Stmt, val elseBranch: Stmt?) : Stmt
     data class RollStmt(val name: TokenNode, val args: Map<String, Expr>? = null) : Stmt
+
 }

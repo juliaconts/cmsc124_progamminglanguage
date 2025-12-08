@@ -16,21 +16,38 @@ class Evaluator(global: Environment) {
                     return if (stmt.root != null) evaluate(stmt.root) else EvalResult.Continue
                 }
 
-                is Stmt.StoryboardDecl -> {
-                    val previous = env
-                    env = Environment(previous)
-
-                    try {
-                        bindParameters(stmt.params)
-                        return if (stmt.body != null) evaluate(stmt.body) else EvalResult.Continue
-                    } finally {
-                        env = previous
+                is Stmt.ProgramList -> {
+                    // First, define all storyboards in the environment
+                    for (statement in stmt.statements) {
+                        if (statement is Stmt.StoryboardDecl) {
+                            env.define(statement.name.token.lexeme, statement)
+                        }
                     }
+
+                    // Then automatically run Main if it exists
+                    if (stmt.statements.any { it is Stmt.StoryboardDecl && it.name.token.lexeme == "Main" }) {
+                        val main = env.get("Main") as Stmt.StoryboardDecl
+                        val previous = env
+                        env = Environment(previous)
+
+                        try {
+                            main.body?.let { evaluate(it) }
+                        } finally {
+                            env = previous
+                        }
+                    }
+
+                    return EvalResult.Continue
+                }
+
+                is Stmt.StoryboardDecl -> {
+                    env.define(stmt.name.token.lexeme, stmt)
+                    return EvalResult.Continue
                 }
 
                 is Stmt.Block -> {
                     val previous = env
-                    if (!insideScene) env = Environment(previous)
+//                    if (!insideScene) env = Environment(previous)
 
                     try {
                         var block: Stmt.Block? = stmt
@@ -133,9 +150,15 @@ class Evaluator(global: Environment) {
 
                     try {
                         // Bind the single argument from the map
-                        stmt.args?.forEach { (name, expr) ->
-                            val value = evaluateExpr(expr)
-                            env.define(name, value)
+                        val paramNames = mutableListOf<String>()
+                        var paramNode = storyboard.params
+                        while (paramNode is ParamList.Param) {
+                            paramNames.add(paramNode.name.token.lexeme)
+                            paramNode = paramNode.next ?: ParamList.Empty
+                        }
+                        val argValues = stmt.args?.values?.map { evaluateExpr(it) } ?: emptyList()
+                        for (i in paramNames.indices) {
+                            env.define(paramNames[i], argValues.getOrNull(i))
                         }
 
                         return storyboard.body?.let { evaluate(it) } ?: EvalResult.Continue
@@ -174,7 +197,8 @@ class Evaluator(global: Environment) {
                 is Expr.Binary -> {
                     val left = evaluateExpr(expr.left)
                     val right = evaluateExpr(expr.right)
-                    when (expr.operator.token.lexeme) {
+
+                    return when (expr.operator.token.lexeme) {
                         "add" -> when {
                             left is Double && right is Double -> left + right
                             left is String || right is String ||
@@ -194,7 +218,7 @@ class Evaluator(global: Environment) {
                             if (r == 0.0) throw RuntimeError(expr.operator.token, "Division by zero.")
                             l / r
                         }
-                        else -> null
+                        else -> throw RuntimeError(expr.operator.token, "Unknown binary operator.")
                     }
                 }
                 null -> null
@@ -238,3 +262,4 @@ class Evaluator(global: Environment) {
         }
     }
 }
+

@@ -32,8 +32,8 @@ fun runScript(source: String) {
         val scanner = Scanner(source)
         val tokens = scanner.scanInput()
 
-        val parser = Parser(tokens)
-        val program: Stmt.Program = parser.parse()
+//        val parser = Parser(tokens)
+        val program: Stmt = Parser(tokens).parse()
 
         // Just run it once; Present handles printing.
         evaluator.evaluate(program)
@@ -78,8 +78,8 @@ fun runRepl() {
             val scanner = Scanner(source)
             val tokens = scanner.scanInput()
 
-            val parser = Parser(tokens)
-            val program: Stmt.Program = parser.parse()
+//            val parser = Parser(tokens)
+            val program: Stmt = Parser(tokens).parse()
 
             // Run once; Present prints everything.
             evaluator.evaluate(program)

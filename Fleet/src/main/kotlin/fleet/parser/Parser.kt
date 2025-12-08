@@ -8,14 +8,18 @@ class ParseError(message: String) : RuntimeException(message)
 class Parser(val tokens: List<Token>) {
     private var current = 0
 
-    fun parse(): Stmt.Program {
-        val root = try {
-            parseStoryboard()
-        } catch (e: ParseError) {
-            synchronize()
-            null
+    fun parse(): Stmt {
+        val statements = mutableListOf<Stmt>()
+
+        while (!isAtEnd()) {
+            try {
+                parseStoryboard()?.let { statements.add(it) }
+            } catch (e: ParseError) {
+                synchronize()
+            }
         }
-        return Stmt.Program(root)
+
+        return Stmt.ProgramList(statements)
     }
 
     private fun parseStoryboard(): Stmt? {
@@ -179,7 +183,7 @@ class Parser(val tokens: List<Token>) {
             // Only one argument allowed
             if (!check(RIGHT_PAR)) {
                 val expr = parseExpression()
-                args = mapOf("arg" to expr)  // just use a fixed key like "arg"
+                args = mapOf("_single" to expr)  // just use a fixed key like "arg"
             }
             consume(RIGHT_PAR, "Expected ')' after argument")
         }
