@@ -218,6 +218,27 @@ class Evaluator(global: Environment) {
                             if (r == 0.0) throw RuntimeError(expr.operator.token, "Division by zero.")
                             l / r
                         }
+
+                        "==" -> left == right
+                        "!=" -> left != right
+
+                        ">" -> {
+                            val (l, r) = Helpers.checkNumberOperands(expr.operator.token, left, right)
+                            l > r
+                        }
+                        "<" -> {
+                            val (l, r) = Helpers.checkNumberOperands(expr.operator.token, left, right)
+                            l < r
+                        }
+                        ">=" -> {
+                            val (l, r) = Helpers.checkNumberOperands(expr.operator.token, left, right)
+                            l >= r
+                        }
+                        "<=" -> {
+                            val (l, r) = Helpers.checkNumberOperands(expr.operator.token, left, right)
+                            l <= r
+                        }
+
                         else -> throw RuntimeError(expr.operator.token, "Unknown binary operator.")
                     }
                 }
