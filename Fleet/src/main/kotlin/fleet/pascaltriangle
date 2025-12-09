@@ -1,0 +1,42 @@
+storyboard PascalTriangle(n) {
+    Actor :: row    Role :: int
+    Actor :: col    Role :: int
+    Actor :: value  Role :: int
+    Actor :: line   Role :: String
+    Actor :: space  Role :: String
+
+    Assign :: 0 to row
+
+    Scene :: n takes {  # Loop over rows
+        # Initialize row string
+        Assign :: "" to line
+
+        # Add spaces for alignment
+        Assign :: 0 to col
+        Assign :: " " to space
+        Scene :: n sub row sub 1 takes {
+            Assign :: line add space to line
+        }
+
+        # Compute numbers in this row
+        Assign :: 0 to col
+        Assign :: 1 to value
+        Scene :: row add 1 takes {
+            Assign :: line add value to line
+            Assign :: line add " " to line
+
+            Assign :: value mul (row sub col) to value
+            Assign :: value div (col add 1) to value
+            Assign :: col add 1 to col
+        }
+
+        # Print the full row
+        Present :: line
+
+        Assign :: row add 1 to row
+    }
+} cut
+
+storyboard Main {
+    Roll :: PascalTriangle(10)
+} cut
