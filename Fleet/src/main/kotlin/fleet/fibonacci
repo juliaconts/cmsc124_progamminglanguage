@@ -1,0 +1,25 @@
+storyboard Fibonacci(n) {
+    Actor :: a      Role :: int
+    Actor :: b      Role :: int
+    Actor :: temp   Role :: int
+    Actor :: i      Role :: int
+
+    Assign :: 0 to a       # first Fibonacci number
+    Assign :: 1 to b       # second Fibonacci number
+    Assign :: 0 to i
+
+    Scene :: n takes {      # loop n times
+        Present :: a        # print current Fibonacci number
+
+        Assign :: temp to temp  # temp will hold next number
+        Assign :: a add b to temp
+        Assign :: a to b
+        Assign :: temp to a
+
+        Assign :: i add 1 to i
+    }
+} cut
+
+storyboard Main {
+    Roll :: Fibonacci(10)
+} cut
